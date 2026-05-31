@@ -1,4 +1,3 @@
-```yaml
 name: Deploy to Google Cloud Run
 
 on:
@@ -150,4 +149,4 @@ jobs:
           echo "Deployment failed!"
           echo "Please check the logs above for errors"
           exit 1
-```
+
