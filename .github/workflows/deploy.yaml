@@ -1,3 +1,4 @@
+```yaml
 name: Deploy to Google Cloud Run
 
 on:
@@ -86,7 +87,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
 
-      - name: Configure Docker for GCR
+      - name: Configure Docker for Artifact Registry
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
 
@@ -95,7 +96,7 @@ jobs:
           docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
           docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.IMAGE_NAME }}:latest
 
-      - name: Push Docker image to GCR
+      - name: Push Docker image
         run: |
           docker push ${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.IMAGE_NAME }}:latest
@@ -107,13 +108,13 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
+            --port 8080 \
             --memory 2Gi \
             --cpu 2 \
             --timeout 300 \
             --max-instances 10 \
             --min-instances 0 \
-            --set-env-vars "LOG_LEVEL=INFO" \
-            --set-secrets "GEMINI_API_KEY=GEMINI_API_KEY:latest,PINECONE_API_KEY=PINECONE_API_KEY:latest"
+            --set-env-vars "LOG_LEVEL=INFO,GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY }}"
 
       - name: Get service URL
         run: |
@@ -126,7 +127,7 @@ jobs:
 
       - name: Run health check
         run: |
-          sleep 15
+          sleep 20
           curl -f ${{ env.SERVICE_URL }}/api/v1/health || exit 1
           echo "Health check passed!"
 
@@ -149,3 +150,4 @@ jobs:
           echo "Deployment failed!"
           echo "Please check the logs above for errors"
           exit 1
+```
